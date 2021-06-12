@@ -3,6 +3,7 @@ package ru.fabrique.inquirer.controllers;
 import java.security.Principal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.fabrique.inquirer.dto.PollDto;
 import ru.fabrique.inquirer.dto.PollWithUserAnswerDto;
@@ -21,7 +23,6 @@ import ru.fabrique.inquirer.logics.PollLogic;
 import ru.fabrique.inquirer.mappers.PollMapper;
 import ru.fabrique.inquirer.mappers.QuestionMapper;
 import ru.fabrique.inquirer.model.Poll;
-import ru.fabrique.inquirer.model.Question;
 import ru.fabrique.inquirer.model.User;
 
 @RequiredArgsConstructor
@@ -48,6 +49,7 @@ public class PollController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public PollDto create(@RequestBody Poll poll) {
         return pollMapper.toDto(pollLogic.createPoll(poll));
     }
@@ -63,8 +65,8 @@ public class PollController {
     }
 
     @PostMapping("{id}/question")
-    public PollDto addQuestion(@PathVariable Long id, @RequestBody Question question) {
-        return pollMapper.toDto(pollLogic.addQuestion(id, question));
+    public PollDto addQuestion(@PathVariable Long id, @RequestBody QuestionDto questionDto) {
+        return pollMapper.toDto(pollLogic.addQuestion(id, questionMapper.toEntity(questionDto)));
     }
 
     @GetMapping("{id}/pass")

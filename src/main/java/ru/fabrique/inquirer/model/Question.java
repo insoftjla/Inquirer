@@ -23,9 +23,9 @@ import lombok.Setter;
 @EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "questions")
-public class Question extends BaseEntity{
+public class Question extends BaseEntity {
 
-    @Column(columnDefinition="TEXT")
+    @Column(columnDefinition = "TEXT")
     private String text;
 
     @Enumerated(EnumType.STRING)
@@ -37,15 +37,10 @@ public class Question extends BaseEntity{
     @ManyToOne
     private Poll poll;
 
-    public void addAnswer(Answer answer) {
-        answers.add(answer);
-    }
-
-    public void removeAnswer(Answer answer) {
-        answers.remove(answer);
-    }
-
     public void setAnswers(List<Answer> answers) {
+        if (answers == null) {
+            return;
+        }
         this.answers.clear();
         this.answers.addAll(answers);
     }

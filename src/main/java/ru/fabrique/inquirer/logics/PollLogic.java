@@ -135,12 +135,12 @@ public class PollLogic {
     }
 
     @Transactional(readOnly = true)
-    public Question getNextActiveQuestionByUsernameAndPollId(String username, Long pollId) {
+    public Question getCurrentActiveQuestionByUsernameAndPollId(String username, Long pollId) {
         return getNextQuestionByUserAnswers(pollId, userAnswerService.findActiveUserAnswersByUsernameAndPollId(username, pollId));
     }
 
     @Transactional(readOnly = true)
-    public Question getNextActiveQuestionByUserAnonymousIdAndPollId(Long anonymousId, Long pollId) {
+    public Question getNextCurrentQuestionByUserAnonymousIdAndPollId(Long anonymousId, Long pollId) {
         return getNextQuestionByUserAnswers(pollId, userAnswerService.findActiveUserAnswersByUserAnonymousIdAndPollId(anonymousId, pollId));
     }
 

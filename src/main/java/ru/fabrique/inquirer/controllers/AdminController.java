@@ -1,5 +1,6 @@
 package ru.fabrique.inquirer.controllers;
 
+import io.swagger.annotations.ApiOperation;
 import java.security.Principal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,7 @@ public class AdminController {
     private final PollMapper pollMapper;
     private final QuestionMapper questionMapper;
 
+    @ApiOperation("Get all polls with pagination")
     @GetMapping("/polls")
     public List<PollDto> getAllPollWithPagination(
             @RequestParam(value = "page", defaultValue = "0") Integer page,
@@ -46,43 +48,51 @@ public class AdminController {
         return pollMapper.toDtos(pollLogic.getAllPollsWithPagination(page, size, sort));
     }
 
+    @ApiOperation("Create poll")
     @PostMapping("/polls")
     @ResponseStatus(HttpStatus.CREATED)
     public PollDto createPoll(@RequestBody Poll poll) {
         return pollMapper.toDto(pollLogic.createPoll(poll));
     }
 
+    @ApiOperation("Update poll")
     @PutMapping("/polls/{id}")
     public PollDto updatePoll(@PathVariable Long id, @RequestBody Poll newPoll) {
         return pollMapper.toDto(pollLogic.updatePoll(id, newPoll));
     }
 
+    @ApiOperation("Delete poll")
     @DeleteMapping("/polls/{id}")
     public void deletePoll(@PathVariable Long id) {
         pollLogic.deletePoll(id);
     }
 
+    @ApiOperation("Add question to poll")
     @PostMapping("/polls/{id}/question")
     public PollDto addQuestionToPoll(@PathVariable Long id, @RequestBody QuestionDto questionDto) {
         return pollMapper.toDto(pollLogic.addQuestion(id, questionMapper.toEntity(questionDto)));
     }
 
+    @ApiOperation(value = "Get completed polls with details by user ID")
     @GetMapping("/polls/user/{userId}")
     public List<PollWithUserAnswerDto> getPollsPassedByUserId(@PathVariable Long userId) {
         return pollLogic.getPollsPassedByUserId(userId);
     }
 
+    @ApiOperation(value = "Get completed polls with details, for current authorized user")
     @GetMapping("/polls/user")
     public List<PollWithUserAnswerDto> getPollsPassedByAnonymousId(Principal principal) {
         return pollLogic.getPollsPassedByUsername(principal.getName());
     }
 
+    @ApiOperation(value = "Get question by id")
     @GetMapping("questions/{id}")
     private QuestionDto getQuestionById(@PathVariable Long id) {
         Question question = questionService.findById(id).orElseThrow(NotFoundException::new);
         return questionMapper.toDto(question);
     }
 
+    @ApiOperation(value = "Update question by id")
     @PutMapping("questions/{id}")
     public QuestionDto updateQuestion(@PathVariable Long id, @RequestBody Question newQuestion) {
         Question question = questionService.findById(id).orElseThrow(NotFoundException::new);
@@ -92,6 +102,7 @@ public class AdminController {
         return questionMapper.toDto(questionService.save(question));
     }
 
+    @ApiOperation(value = "Delete question by id")
     @DeleteMapping("questions/{id}")
     public void deleteQuestion(@PathVariable Long id) {
         Question question = questionService.findById(id).orElseThrow(NotFoundException::new);

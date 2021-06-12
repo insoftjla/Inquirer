@@ -1,5 +1,6 @@
 package ru.fabrique.inquirer.services;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +15,10 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionRepository questionRepository;
 
     @Override
-    public Optional<Question> findByIdEndPollId(Long questionId, Long pollId) {
-        return questionRepository.findByIdAndPollId(questionId, pollId);
+    public Optional<Question> findActiveByIdEndPollId(Long questionId, Long pollId) {
+        Date currentDate = new Date();
+        return questionRepository.findByPollDateStartLessThanEqualAndPollDateEndGreaterThanEqualAndIdAndPollId(
+                currentDate, currentDate, questionId, pollId);
     }
 
     @Override
@@ -24,22 +27,13 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public List<Question> findAll() {
-        return questionRepository.findAll();
-    }
-
-    @Override
-    public List<Question> findAllByPollId(Long id) {
-        return questionRepository.findAllByPollIdOrderByIdAsc(id);
+    public List<Question> findAllActiveByPollId(Long id) {
+        Date currentDate = new Date();
+        return questionRepository.findAllByPollDateStartLessThanEqualAndPollDateEndGreaterThanEqualAndPollIdOrderByIdAsc(currentDate, currentDate, id);
     }
 
     @Override
     public Question save(Question question) {
         return questionRepository.save(question);
-    }
-
-    @Override
-    public void deleteById(Long id) {
-        questionRepository.deleteById(id);
     }
 }

@@ -5,11 +5,11 @@ import java.util.Optional;
 import ru.fabrique.inquirer.model.UserAnswer;
 
 public interface UserAnswerService {
-    List<UserAnswer> findUserAnswersByUserIdAndPollId(Long userId, Long pollId);
+    List<UserAnswer> findActiveUserAnswersByUserIdAndPollId(Long userId, Long pollId);
 
-    List<UserAnswer> findUserAnswersByUsernameAndPollId(String username, Long pollId);
+    List<UserAnswer> findActiveUserAnswersByUsernameAndPollId(String username, Long pollId);
 
-    List<UserAnswer> findUserAnswersByUserAnonymousIdAndPollId(Long anonymousId, Long pollId);
+    List<UserAnswer> findActiveUserAnswersByUserAnonymousIdAndPollId(Long anonymousId, Long pollId);
 
     void saveUserAnswer(UserAnswer userAnswer);
 

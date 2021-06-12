@@ -3,16 +3,12 @@ package ru.fabrique.inquirer.controllers;
 import java.security.Principal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.fabrique.inquirer.dto.PollDto;
 import ru.fabrique.inquirer.dto.PollWithUserAnswerDto;
@@ -22,7 +18,6 @@ import ru.fabrique.inquirer.exceptions.UnauthorizedException;
 import ru.fabrique.inquirer.logics.PollLogic;
 import ru.fabrique.inquirer.mappers.PollMapper;
 import ru.fabrique.inquirer.mappers.QuestionMapper;
-import ru.fabrique.inquirer.model.Poll;
 import ru.fabrique.inquirer.model.User;
 
 @RequiredArgsConstructor
@@ -35,58 +30,37 @@ public class PollController {
     private final QuestionMapper questionMapper;
 
     @GetMapping
-    public List<PollDto> getAllWithPagination(
+    public List<PollDto> getAllActiveWithPagination(
             @RequestParam(value = "page", defaultValue = "0") Integer page,
             @RequestParam(value = "size", defaultValue = "10") Integer size,
             @RequestParam(value = "sort", defaultValue = "name") String sort
     ) {
-        return pollMapper.toDtos(pollLogic.getPollsWithPagination(page, size, sort));
+        return pollMapper.toDtos(pollLogic.getActivePollsWithPagination(page, size, sort));
     }
 
     @GetMapping("{id}")
-    public PollDto getById(@PathVariable Long id) {
-        return pollMapper.toDto(pollLogic.getPollById(id));
-    }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public PollDto create(@RequestBody Poll poll) {
-        return pollMapper.toDto(pollLogic.createPoll(poll));
-    }
-
-    @PutMapping("{id}")
-    public PollDto update(@PathVariable Long id, @RequestBody Poll newPoll) {
-        return pollMapper.toDto(pollLogic.updatePoll(id, newPoll));
-    }
-
-    @DeleteMapping("{id}")
-    public void delete(@PathVariable Long id) {
-        pollLogic.deletePoll(id);
-    }
-
-    @PostMapping("{id}/question")
-    public PollDto addQuestion(@PathVariable Long id, @RequestBody QuestionDto questionDto) {
-        return pollMapper.toDto(pollLogic.addQuestion(id, questionMapper.toEntity(questionDto)));
+    public PollDto getActiveById(@PathVariable Long id) {
+        return pollMapper.toDto(pollLogic.getActivePollById(id));
     }
 
     @GetMapping("{id}/pass")
-    public QuestionDto getNextQuestionForPoll(
+    public QuestionDto getNextActiveQuestionForPoll(
             @PathVariable Long id,
             @RequestParam(required = false) Long anonymousId,
             Principal principal
     ) {
         if (anonymousId == null) {
             if (principal != null) {
-                return questionMapper.toDto(pollLogic.getNextQuestionByUsernameAndPollId(principal.getName(), id));
+                return questionMapper.toDto(pollLogic.getNextActiveQuestionByUsernameAndPollId(principal.getName(), id));
             } else {
                 throw new UnauthorizedException();
             }
         }
-        return questionMapper.toDto(pollLogic.getNextQuestionByUserAnonymousIdAndPollId(anonymousId, id));
+        return questionMapper.toDto(pollLogic.getNextActiveQuestionByUserAnonymousIdAndPollId(anonymousId, id));
     }
 
     @PostMapping("{id}/pass")
-    public QuestionDto answerAndGetNextQuestionForPoll(
+    public QuestionDto answerAndGetNextActiveQuestionForPoll(
             @PathVariable Long id,
             @RequestParam(required = false) Long anonymousId,
             @RequestBody UserAnswerDto userAnswerDto,
@@ -103,23 +77,11 @@ public class PollController {
             user = pollLogic.saveAnonymousUserIfNotPresent(anonymousId);
         }
         pollLogic.saveUserAnswer(id, user, userAnswerDto);
-        return questionMapper.toDto(pollLogic.getNextQuestionByUserIdAndPollId(user.getId(), id));
-    }
-
-    @GetMapping("/user/{userId}")
-    public List<PollWithUserAnswerDto> getPollsPassedByUserId(@PathVariable Long userId) {
-        return pollLogic.getPollsPassedByUserId(userId);
+        return questionMapper.toDto(pollLogic.getNextActiveQuestionByUserIdAndPollId(user.getId(), id));
     }
 
     @GetMapping("/user")
-    public List<PollWithUserAnswerDto> getPollsPassedByAnonymousId(@RequestParam(required = false) Long anonymousId, Principal principal) {
-        if (anonymousId == null) {
-            if (principal != null) {
-                return pollLogic.getPollsPassedByUsername(principal.getName());
-            } else {
-                throw new UnauthorizedException();
-            }
-        }
+    public List<PollWithUserAnswerDto> getPollsPassedByAnonymousId(@RequestParam Long anonymousId) {
         return pollLogic.getPollsPassedByAnonymousId(anonymousId);
     }
 }

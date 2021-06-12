@@ -7,7 +7,7 @@ import ru.fabrique.inquirer.model.Poll;
 import ru.fabrique.inquirer.model.Question;
 
 public interface PollService {
-    Optional<Poll> findById(Long id);
+    Optional<Poll> findActiveById(Long id);
 
     Optional<Poll> findByQuestion(Question question);
 
@@ -16,4 +16,6 @@ public interface PollService {
     Poll save(Poll poll);
 
     void delete(Long id);
+
+    Page<Poll> findAllActiveWithPagination(Pageable pageable);
 }

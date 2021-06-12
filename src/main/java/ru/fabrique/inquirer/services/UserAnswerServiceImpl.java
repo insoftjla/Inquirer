@@ -1,5 +1,6 @@
 package ru.fabrique.inquirer.services;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -13,18 +14,24 @@ public class UserAnswerServiceImpl implements UserAnswerService {
     private final UserAnswerRepository userAnswerRepository;
 
     @Override
-    public List<UserAnswer> findUserAnswersByUserIdAndPollId(Long userId, Long pollId) {
-        return userAnswerRepository.findAllByUserIdAndPollId(userId, pollId);
+    public List<UserAnswer> findActiveUserAnswersByUserIdAndPollId(Long userId, Long pollId) {
+        Date currentDate = new Date();
+        return userAnswerRepository.findAllByPollDateStartLessThanEqualAndPollDateEndGreaterThanEqualAndUserIdAndPollId(
+                currentDate, currentDate, userId, pollId);
     }
 
     @Override
-    public List<UserAnswer> findUserAnswersByUsernameAndPollId(String username, Long pollId) {
-        return userAnswerRepository.findAllByUserUsernameAndPollId(username, pollId);
+    public List<UserAnswer> findActiveUserAnswersByUsernameAndPollId(String username, Long pollId) {
+        Date currentDate = new Date();
+        return userAnswerRepository.findAllByPollDateStartLessThanEqualAndPollDateEndGreaterThanEqualAndUserUsernameAndPollId(
+                currentDate, currentDate, username, pollId);
     }
 
     @Override
-    public List<UserAnswer> findUserAnswersByUserAnonymousIdAndPollId(Long anonymousId, Long pollId) {
-        return userAnswerRepository.findAllByUserAnonymousIdAndPollId(anonymousId, pollId);
+    public List<UserAnswer> findActiveUserAnswersByUserAnonymousIdAndPollId(Long anonymousId, Long pollId) {
+        Date currentDate = new Date();
+        return userAnswerRepository.findAllByPollDateStartLessThanEqualAndPollDateEndGreaterThanEqualAndUserAnonymousIdAndPollId(
+                currentDate, currentDate, anonymousId, pollId);
     }
 
     @Override

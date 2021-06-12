@@ -41,18 +41,19 @@ public class PollLogic {
     private final QuestionMapper questionMapper;
     private final AnswerMapper answerMapper;
 
+
     @Transactional
     public Poll createPoll(Poll poll) {
         return pollService.save(poll);
     }
 
     @Transactional(readOnly = true)
-    public Poll getPollById(Long pollId) {
-        return pollService.findById(pollId).orElseThrow(NotFoundException::new);
+    public Poll getActivePollById(Long pollId) {
+        return pollService.findActiveById(pollId).orElseThrow(NotFoundException::new);
     }
 
     @Transactional(readOnly = true)
-    public List<Poll> getPollsWithPagination(int page, int size, String sort) {
+    public List<Poll> getAllPollsWithPagination(int page, int size, String sort) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
         Page<Poll> pollPage = pollService.findAllWithPagination(pageable);
         if (pollPage.isEmpty()) {
@@ -61,9 +62,19 @@ public class PollLogic {
         return pollPage.toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<Poll> getActivePollsWithPagination(int page, int size, String sort) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        Page<Poll> pollPage = pollService.findAllActiveWithPagination(pageable);
+        if (pollPage.isEmpty()) {
+            throw new NotFoundException();
+        }
+        return pollPage.toList();
+    }
+
     @Transactional
     public Poll updatePoll(Long pollId, Poll newPoll) {
-        Poll poll = pollService.findById(pollId).orElseThrow(NotFoundException::new);
+        Poll poll = pollService.findActiveById(pollId).orElseThrow(NotFoundException::new);
         poll.setName(newPoll.getName());
         poll.setDateEnd(newPoll.getDateEnd());
         poll.setDescription(newPoll.getDescription());
@@ -89,7 +100,7 @@ public class PollLogic {
 
     @Transactional
     public Poll addQuestion(Long pollId, Question question) {
-        Poll poll = pollService.findById(pollId).orElseThrow(NotFoundException::new);
+        Poll poll = pollService.findActiveById(pollId).orElseThrow(NotFoundException::new);
         poll.addQuestion(question);
         return pollService.save(poll);
     }
@@ -99,7 +110,7 @@ public class PollLogic {
         if (userAnswerService.getByUserIdAndQuestionId(user.getId(), userAnswerDto.getQuestionId()).isPresent()) {
             throw new AlreadyReportedException();
         }
-        Question question = questionService.findByIdEndPollId(userAnswerDto.getQuestionId(), pollId).orElseThrow(NotFoundException::new);
+        Question question = questionService.findActiveByIdEndPollId(userAnswerDto.getQuestionId(), pollId).orElseThrow(NotFoundException::new);
         UserAnswer userAnswer = new UserAnswer();
         if (question.getType().equals(QuestionType.RADIO)) {
             userAnswer.getAnswers().add(getOneAnswer(question, userAnswerDto));
@@ -119,18 +130,18 @@ public class PollLogic {
     }
 
     @Transactional(readOnly = true)
-    public Question getNextQuestionByUserIdAndPollId(Long userId, Long pollId) {
-        return getNextQuestionByUserAnswers(pollId, userAnswerService.findUserAnswersByUserIdAndPollId(userId, pollId));
+    public Question getNextActiveQuestionByUserIdAndPollId(Long userId, Long pollId) {
+        return getNextQuestionByUserAnswers(pollId, userAnswerService.findActiveUserAnswersByUserIdAndPollId(userId, pollId));
     }
 
     @Transactional(readOnly = true)
-    public Question getNextQuestionByUsernameAndPollId(String username, Long pollId) {
-        return getNextQuestionByUserAnswers(pollId, userAnswerService.findUserAnswersByUsernameAndPollId(username, pollId));
+    public Question getNextActiveQuestionByUsernameAndPollId(String username, Long pollId) {
+        return getNextQuestionByUserAnswers(pollId, userAnswerService.findActiveUserAnswersByUsernameAndPollId(username, pollId));
     }
 
     @Transactional(readOnly = true)
-    public Question getNextQuestionByUserAnonymousIdAndPollId(Long anonymousId, Long pollId) {
-        return getNextQuestionByUserAnswers(pollId, userAnswerService.findUserAnswersByUserAnonymousIdAndPollId(anonymousId, pollId));
+    public Question getNextActiveQuestionByUserAnonymousIdAndPollId(Long anonymousId, Long pollId) {
+        return getNextQuestionByUserAnswers(pollId, userAnswerService.findActiveUserAnswersByUserAnonymousIdAndPollId(anonymousId, pollId));
     }
 
     @Transactional(readOnly = true)
@@ -149,7 +160,7 @@ public class PollLogic {
     }
 
     private Question getNextQuestionByUserAnswers(Long pollId, List<UserAnswer> userAnswers) {
-        List<Question> questions = questionService.findAllByPollId(pollId);
+        List<Question> questions = questionService.findAllActiveByPollId(pollId);
         for (Question question : questions) {
             if (userAnswers.stream()
                     .noneMatch((a) -> a.getQuestion().equals(question))) {
